@@ -46,3 +46,17 @@ Confirmed the gap is real and located exactly where the issue says:
 optional LLM re-ranking pass between the hybrid blend and the top-k cutoff
 in `rag/retriever/hybrid.py`, implemented as a new `rag/retriever/reranker.py`
 module.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/adumasiv/pathreview/commit/82afc3cfa309b1e70ef70dbdab46d9567c20cf99
+
+**Reproduction summary:**
+Confirmed the missing re-ranking step by grepping the codebase for any existing `rerank` reference (none found) and reading `HybridRetriever.retrieve()` end to end, which shows it only sorts by a blended vector/keyword score with no LLM relevance check before returning chunks to the generator.
+
+**PLAN.md link:** https://github.com/adumasiv/pathreview/blob/feat/34-re-ranking-step/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Still need to validate against a live OpenRouter model (`google/gemma-3-27b-it:free`) that the scoring prompt reliably returns a parseable number — current fallback (score 0.0 on parse/API failure) is only exercised in unit tests with mocked responses so far. Also unresolved: whether `review_service.py`'s still-placeholder RAG step should be wired up to actually use the reranker as part of this issue or as separate follow-up work.
