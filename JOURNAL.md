@@ -83,7 +83,7 @@ The project's `mypy` pre-commit hook is stricter than the project's own defined 
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/compare/main...adumasiv:pathreview:feat/34-re-ranking-step?expand=1 *(compare link — PR not yet opened; will update with the actual PR link once submitted)*
+**PR link:** https://github.com/ascherj/pathreview/pull/821
 
 **Branch:** `feat/34-re-ranking-step`
 
