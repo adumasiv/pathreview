@@ -98,3 +98,34 @@ An optional LLM re-ranking pass for the RAG retriever: `HybridRetriever` can now
 *(both defined as "introduces no new failures" — baseline measured at `main`'s merge-base `d5f196d`: `make test-unit` 375 passed/53 failed → this branch 396 passed/53 failed, same 53 pre-existing failures plus 21 new passing tests; `ruff`/`black`/`mypy` show the same pre-existing errors before and after, and my own changed/added files are individually clean under all three. Full comparison table in the PR description.)*
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments yet on [PR #821](https://github.com/ascherj/pathreview/pull/821) as of this entry.
+
+**How you responded:**
+N/A — nothing to respond to yet. Will update this section as soon as feedback comes in.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The feature itself wasn't the hardest part. The reranker logic (score, sort, truncate) was straightforward once I'd read `hybrid.py`. What actually slowed me down was the tooling gap between what the repo says it enforces and what it actually enforces: the `mypy` pre-commit hook fails on completely unmodified test files (`test_keyword_search.py` included), because `disallow_untyped_defs` is on repo-wide but `make typecheck` quietly excludes `tests/`. I had to stop, prove that with a clean worktree checked out at `main`'s merge-base, before I could trust that I wasn't the one breaking things. Proving a negative — "my change didn't cause this" — took more discipline than writing the fix did.
+
+**What did you learn about working in a large codebase?**
+That "passes" isn't a single fact you check once. It's a diff you have to establish against a baseline. In my own projects I'd just run the test suite and call it green or red. Here, red was the *starting* state, and the actual job was showing the delta stayed at zero. I also learned to read a codebase's real conventions from its Makefile and existing files (e.g. `EmbeddingProvider`'s ABC/factory pattern), not just from what a linter config file claims, the two didn't agree, and the working code was the more trustworthy source.
+
+**How did AI tools help — and where did they fall short?**
+Fastest where it mattered least: generating the `Reranker`/`LLMReranker`/`MockReranker` scaffolding by mirroring an existing pattern in the codebase was quick and low-risk to review. It also caught the dead-keyword-search bug as a byproduct of a routine lint pass, which I would've had to notice myself otherwise. Where it fell short: it couldn't tell me *which* check to trust when the repo's own tooling disagreed with itself (hook vs. `make typecheck`) — that required judgment calls I had to make and get sign-off on, not something to automate past. It also can't validate that the actual re-ranking prompt gets reliable scores out of a real model — that's still unverified against anything but mocks.
+
+**What would you do differently if you started over?**
+I'd spend 20 minutes upfront running `make check`/`make test-unit` against a clean baseline *before* writing any code, rather than discovering the pre-existing gaps reactively while trying to commit. Same conclusion, less backtracking.
+
+**What are you most proud of from this module?**
+Catching and fixing the bug where `keyword_searcher` was fetched but never indexed, so BM25 keyword search silently returned nothing in production. It wasn't the assigned issue, it surfaced from a one-line lint warning, and it's a real correctness fix that would've kept quietly under-delivering half of "hybrid" retrieval if I hadn't stopped to ask why the variable was unused instead of just suppressing the warning.
